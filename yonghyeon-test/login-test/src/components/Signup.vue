@@ -1,5 +1,11 @@
 <template>
   <form>
+    <input type="text"
+           placeholder="이름을 입력해주세요."
+           id= "name"
+           v-model= "name"
+    >
+
     <input type="email" 
            placeholder="이메일을 입력해주세요." 
            id= "email"
@@ -33,6 +39,7 @@ export default {
   name: 'sign-up',
   data () {
     return {
+      name: '',
       email: '',
       password: '',
       rePassword: ''
@@ -40,7 +47,10 @@ export default {
   },
   methods: {
     onSubmitSignup () {
-      switch(this.validateSignupForm(this.email, this.password, this.rePassword)) {
+      switch(this.validateSignupForm(this.name, this.email, this.password, this.rePassword)) {
+        case VALIDATE_RESULT.EMPTY_NAME:
+          alert('이름을 입력해주세요.');
+          break;
         case VALIDATE_RESULT.INVALIDATION_EMAIL:
           alert('이메일을 확인해주세요.');
           break;
@@ -52,14 +62,14 @@ export default {
           break;
         case VALIDATE_RESULT.SUCCESS:
           // 여기 URL 부분 변경하셈.
-          axios.post('192.168.43.122:8080', {
+          axios.post('http://192.168.43.122:8080/user', {
+            name: this.name,
             email: this.email,
-            password: this.password            
+            password: this.password      
           })
           .then((response) => {
             console.log(response);
-            this.$router.go(-1); // TEST CODE - 성공하면 뒤로 넘어갈거임.
-            // this.$router.push('/success');
+            this.$router.push('/check');
           })
           .catch(errorHandler);
           break;
@@ -69,7 +79,7 @@ export default {
       }
     },
 
-    validateSignupForm (email, password, rePassword) {
+    validateSignupForm (name, email, password, rePassword) {
       const EMAIL_REGEXP = /([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
       
       if (!EMAIL_REGEXP.test(email)) {
@@ -78,6 +88,8 @@ export default {
         return VALIDATE_RESULT.EMPTY_PASSWORD
       }else if (password !== rePassword) {
         return VALIDATE_RESULT.DIFFERENT_PASSWORD
+      }else if (name === '') {
+        return VALIDATE_RESULT.EMPTY_NAME
       }
 
       return VALIDATE_RESULT.SUCCESS
@@ -100,11 +112,8 @@ export default {
       console.log(pwd, rePwd);
 
       if(rePwd !== '') {
-        if(pwd === rePwd) {
-          pwdTest.style.border= '1px solid green';
-        } else {
-          pwdTest.style.border= '1px solid red';
-        }
+        const styleArr = ['1px solid green', '1px solid red'];
+        pwdTest.style.border = (pwd === rePwd) ? styleArr[0] : styleArr[1];
       }
     }
   }
@@ -130,7 +139,7 @@ export default {
     margin-top: 1rem;
   }
 
-  input[type=email] {
+  input[type=text] {
     margin-top: 10rem;
   }
 
@@ -152,5 +161,3 @@ export default {
     cursor: pointer;
   }
 </style>
-
-
